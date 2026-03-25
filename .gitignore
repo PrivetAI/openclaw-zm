@@ -1,0 +1,18 @@
+# Secrets
+*.bak
+*.bak.*
+
+# OS
+.DS_Store
+
+# Build artifacts
+build/
+DerivedData/
+
+# Don't track stale files
+iOS_APPS_TESTING_SUMMARY.md
+iOS_Apps_Testing_Report.md
+lives_system_implementation.md
+Screenshot_Paths.md
+Package.swift
+Sources/

@@ -1,0 +1,23 @@
+App Review Notes — Rainex: Word Roots
+
+1. Screen Recording
+A screen recording from a physical device is attached separately.
+
+2. App Purpose
+Rainex: Word Roots is an educational app that teaches users Latin and Greek word roots — the building blocks of English vocabulary. It covers 10 categories (Body, Science, Numbers, Mind, Movement, Language, Law, Nature, Time, Society) with over 120 roots. Users can explore roots by category, take quizzes, and solve word-building puzzles. It is designed for students, language learners, and anyone looking to expand their English vocabulary.
+
+3. Instructions
+- No login or account required. The app is fully functional immediately upon launch.
+- "Explore" tab: Browse word roots organized by category. Tap a category to see all roots with meanings, origins, and example words.
+- "Quiz" tab: Test your knowledge — identify the correct meaning of a given root.
+- "Builder" tab: Solve word-building puzzles by combining prefixes, roots, and suffixes.
+- "Settings" tab: Access privacy policy and app information.
+
+4. External Services
+The app works fully offline. No external services, APIs, data providers, authentication services, or payment processors are used. All root/word data is bundled locally.
+
+5. Regional Differences
+The app functions consistently across all regions. No regional differences in features or content.
+
+6. Regulated Industry
+Not applicable. This is a general education app.

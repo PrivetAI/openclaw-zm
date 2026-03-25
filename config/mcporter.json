@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "xcodebuildmcp": {
+      "command": "xcodebuildmcp mcp",
+      "env": {
+        "XCODEBUILDMCP_ENABLED_WORKFLOWS": "simulator,ui-automation,project-discovery,logging"
+      }
+    }
+  },
+  "imports": []
+}
