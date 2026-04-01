@@ -3,138 +3,79 @@ name: setup
 description: Fresh setup of OpenClaw + iOS dev workflow on a new Mac. Use when deploying to a new device from scratch.
 ---
 
-# Fresh Setup — OpenClaw + iOS Dev Workflow
-
-Complete guide to get a new Mac ready for autonomous iOS app building.
+# Setup — OpenClaw + iOS Dev Workflow
 
 ## Prerequisites
 
-- macOS 14+ (Sonoma or newer)
+- macOS 14+
 - Apple ID signed into Mac
 - Anthropic API key
 - Telegram bot token (from @BotFather)
-- GitHub account with SSH key
+- GitHub SSH key
 
-## Quick Start (Automated)
+## Installation
 
-The workspace repo includes a bootstrap script that handles most of the setup:
+### Step 1: OpenClaw
+
+Install OpenClaw following the official guide: https://github.com/openclaw/openclaw
 
 ```bash
-# 1. Clone workspace first (it has the setup script)
-cd ~/.openclaw
-git clone git@github.com:PrivetAI/openclaw-zm.git workspace
-
-# 2. Run setup
-chmod +x workspace/setup.sh
-./workspace/setup.sh
+# After install, run the setup wizard:
+openclaw onboard
+# Enter: Anthropic API key, Telegram bot token, allowed user IDs
 ```
 
-The script installs: Homebrew, Node.js, GitHub CLI, XcodeBuildMCP, clones OpenClaw, creates directories, and generates `config/paths.json`.
-
-After the script, you still need to:
-1. Install Xcode from App Store
-2. Configure OpenClaw config with tokens
-3. Set up GitHub SSH key
-4. Edit `USER.md`
-
-## Manual Setup (Step by Step)
-
-### Step 1: Xcode
+### Step 2: Xcode
 
 ```bash
 # Install from App Store, then:
 xcode-select --install
 sudo xcodebuild -license accept
-xcodebuild -version
 ```
 
 Install at least one iPhone simulator (Settings → Platforms → iOS).
 
-### Step 2: Homebrew + Tools
+### Step 3: Workspace + Tools
 
 ```bash
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-brew install node@22 git gh jq
+# Clone this repo as workspace
+git clone git@github.com:PrivetAI/openclaw-zm.git ~/.openclaw/workspace
+
+# Run setup — installs tools, creates directories
+bash ~/.openclaw/workspace/setup.sh
+
+# Fill in your info
+nano ~/.openclaw/workspace/USER.md
 ```
 
-### Step 3: GitHub Auth
+setup.sh checks/installs:
+- GitHub CLI (`gh`)
+- XcodeBuildMCP (simulator automation)
+- Dev directories (`~/Documents/development/`)
+- `USER.md` template
+- `config/paths.json`
+
+### Step 4: GitHub Auth
 
 ```bash
-# Generate SSH key
-ssh-keygen -t ed25519 -C "your_email@example.com"
-eval "$(ssh-agent -s)"
-ssh-add ~/.ssh/id_ed25519
-
-# Add public key to GitHub → Settings → SSH Keys
-cat ~/.ssh/id_ed25519.pub
-
-# Authenticate gh CLI
 gh auth login
-
-# Configure git identity
 git config --global user.name "Your Name"
-git config --global user.email "your_email@example.com"
-
-# Verify
-gh auth status
-ssh -T git@github.com
+git config --global user.email "your@email.com"
 ```
 
-### Step 4: OpenClaw
+### Step 5: Start
 
 ```bash
-cd ~/Desktop
-git clone git@github.com:PrivetAI/openclaw.git
-cd openclaw
-npm install
-
-# Run setup wizard — creates ~/.openclaw/openclaw.json
-node openclaw.mjs onboard
+openclaw gateway start
 ```
 
-### Step 5: OpenClaw Config
+Message the bot in Telegram to verify.
 
-Edit `~/.openclaw/openclaw.json`:
+## USER.md
 
-```json
-{
-  "agents": {
-    "defaults": {
-      "model": { "primary": "anthropic/claude-opus-4-6" },
-      "workspace": "<HOME>/.openclaw/workspace",
-      "compaction": { "mode": "safeguard" },
-      "maxConcurrent": 8,
-      "subagents": { "maxConcurrent": 8 }
-    }
-  },
-  "channels": {
-    "telegram": {
-      "enabled": true,
-      "dmPolicy": "allowlist",
-      "botToken": "<BOT_TOKEN>",
-      "allowFrom": ["<TELEGRAM_USER_ID>"],
-      "groupPolicy": "allowlist",
-      "streamMode": "partial"
-    }
-  },
-  "gateway": {
-    "port": 18789,
-    "mode": "local",
-    "bind": "loopback"
-  }
-}
-```
+Created by setup.sh. Fill in:
 
-### Step 6: Workspace
-
-```bash
-cd ~/.openclaw
-git clone git@github.com:PrivetAI/openclaw-zm.git workspace
-cd workspace
-
-# Create USER.md — agent will ask for your info on first run
-# Or create it manually:
-cat > USER.md << 'EOF'
+```markdown
 # USER.md
 
 - **Name:** Your Name
@@ -145,118 +86,54 @@ cat > USER.md << 'EOF'
 ## Context
 
 - Goals and preferences here
-EOF
-nano USER.md  # fill in your info
-
-# Create config directory (setup.sh does this automatically)
-mkdir -p config
-cat > config/paths.json << EOF
-{
-  "development": "/Users/$(whoami)/Documents/development",
-  "review_apps": "/Users/$(whoami)/Documents/development/for_human_review_apps",
-  "old_apps": "/Users/$(whoami)/Documents/development/old_apps",
-  "skills": "/Users/$(whoami)/.openclaw/workspace/skills",
-  "app_descriptions": "/Users/$(whoami)/Documents/development/for_human_review_apps/APP_DESCRIPTIONS.md"
-}
-EOF
 ```
 
-### Step 7: Create Dev Directories
+## Verification
 
 ```bash
-mkdir -p ~/Documents/development/for_human_review_apps
-mkdir -p ~/Documents/development/old_apps
-```
-
-### Step 8: MCP Tools (for iOS testing)
-
-```bash
-# XcodeBuildMCP — Xcode simulator automation
-brew install nicklama/tap/xcodebuildmcp
-
-# MCPorter config (optional, for MCP integration)
-cat > ~/.openclaw/workspace/config/mcporter.json << 'EOF'
-{
-  "mcpServers": {
-    "xcodebuildmcp": {
-      "command": "xcodebuildmcp mcp",
-      "env": {
-        "XCODEBUILDMCP_ENABLED_WORKFLOWS": "simulator,ui-automation,project-discovery,logging"
-      }
-    }
-  }
-}
-EOF
-```
-
-### Step 9: Start
-
-```bash
-cd ~/Desktop/openclaw
-node openclaw.mjs gateway start
-```
-
-Send a message to the Telegram bot to verify.
-
-## Verification Checklist
-
-```bash
-xcodebuild -version                    # Xcode installed
+xcodebuild -version                    # Xcode
 node -v                                # Node.js 20+
-gh auth status                         # GitHub authenticated
-ls ~/.openclaw/workspace/SOUL.md       # Workspace ready
-ls ~/.openclaw/workspace/skills/       # Skills present
-xcrun simctl list devices available    # Simulators available
-xcodebuildmcp --version                # XcodeBuildMCP installed
+gh auth status                         # GitHub
+ls ~/.openclaw/workspace/skills/       # Skills (14)
+xcrun simctl list devices available    # Simulators
+xcodebuildmcp --version                # XcodeBuildMCP
 ```
 
-## Directory Structure (after setup)
+## Directory Structure
 
 ```
 ~/.openclaw/
-├── openclaw.json                  # Main config (API keys, channels)
-└── workspace/                     # Agent workspace (this repo)
-    ├── AGENTS.md                  # Agent rules
-    ├── SOUL.md                    # Agent personality
-    ├── IDENTITY.md                # Agent identity
-    ├── HEARTBEAT.md               # Periodic tasks
-    ├── setup.sh                   # Bootstrap script
-    ├── skills/                    # All skills live here
+├── openclaw.json                  # OpenClaw config (API keys, channels)
+└── workspace/                     # This repo
+    ├── AGENTS.md, SOUL.md, IDENTITY.md
+    ├── HEARTBEAT.md
+    ├── setup.sh
+    ├── skills/ (14)
     │   ├── ios-builder/
     │   ├── ios-tester/
     │   ├── ios-app-rename/
     │   ├── ios-version-bump/
     │   ├── codemagic/
     │   ├── idea-gen/
-    │   ├── github/
     │   └── ...
     │
-    │   Created locally (not in repo):
-    ├── USER.md                    # User info (from .example)
-    ├── TOOLS.md                   # Local tool notes
-    ├── MEMORY.md                  # Long-term memory (auto)
-    ├── config/
-    │   ├── paths.json             # Portable paths
-    │   └── mcporter.json          # MCP server config
-    └── memory/                    # Daily logs (auto)
-
-~/Desktop/openclaw/                # OpenClaw engine
-└── openclaw.mjs
+    │   Local (gitignored):
+    ├── USER.md
+    ├── config/paths.json
+    ├── memory/
+    └── MEMORY.md
 
 ~/Documents/development/           # iOS projects
 ├── for_human_review_apps/         # Finished apps
-└── old_apps/                      # Archived apps
+└── old_apps/                      # Archived
 ```
 
 ## Troubleshooting
 
 | Problem | Fix |
 |---------|-----|
-| `node` not found | `brew install node@22` or add to PATH |
-| Xcode CLI tools missing | `xcode-select --install` |
+| Xcode CLI missing | `xcode-select --install` |
 | No simulators | Xcode → Settings → Platforms → Download iOS |
 | XcodeBuildMCP not found | `brew install nicklama/tap/xcodebuildmcp` |
-| SSH key not accepted | Add `~/.ssh/id_ed25519.pub` to GitHub → SSH Keys |
 | GitHub auth fails | `gh auth login` |
-| Bot not responding | Check `openclaw.json` botToken + allowFrom |
-| Build fails "no signing" | Expected — Manual signing, works in Simulator |
+| Bot not responding | Check `~/.openclaw/openclaw.json` botToken + allowFrom |
