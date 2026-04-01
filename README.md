@@ -20,8 +20,6 @@ openclaw-zm/              ← этот репо (workspace агента)
 ├── AGENTS.md             ← инструкции агенту (как себя вести)
 ├── SOUL.md               ← личность и тон
 ├── IDENTITY.md           ← имя, эмодзи
-├── USER.md.example       ← шаблон — скопировать в USER.md
-├── TOOLS.md.example      ← шаблон — скопировать в TOOLS.md
 ├── skills/               ← навыки агента
 │   ├── ios-builder/      ← генерация + сборка приложений
 │   ├── ios-tester/       ← тестирование в симуляторе
@@ -33,12 +31,11 @@ openclaw-zm/              ← этот репо (workspace агента)
 │   ├── apple-hig/        ← гайдлайны Apple
 │   └── ...               ← остальные
 │
-│   Создаются локально (не в репо):
+│
+│   Создаются локально (gitignored):
 ├── config/               ← paths.json, mcporter.json
 ├── memory/               ← дневные логи агента
-├── MEMORY.md             ← долгосрочная память
-├── USER.md               ← данные владельца
-└── TOOLS.md              ← заметки по инструментам
+└── MEMORY.md             ← долгосрочная память
 ```
 
 ## Флоу работы
@@ -122,12 +119,11 @@ git clone https://github.com/openclaw/openclaw.git
 cd openclaw
 npm install
 
-# Создаём конфиг
-cp config.example.yaml config.yaml
-# Редактируем config.yaml — вставляем токены:
+# Запускаем визард — создаст ~/.openclaw/openclaw.json
+node openclaw.mjs onboard
+# Визард попросит:
 #   - Anthropic API key
-#   - Telegram bot token + allowed users
-#   - GitHub token (опционально)
+#   - Telegram bot token + allowed user IDs
 ```
 
 ### 3. Workspace (этот репо)
@@ -138,23 +134,11 @@ cd ~/.openclaw
 git clone git@github.com:PrivetAI/openclaw-zm.git workspace
 cd workspace
 
-# Создаём локальные файлы из шаблонов
-cp USER.md.example USER.md
-cp TOOLS.md.example TOOLS.md
+# setup.sh создаст config/paths.json и директории автоматически
+chmod +x setup.sh
+./setup.sh
 
-# Создаём config/paths.json под свой мак
-mkdir -p config
-cat > config/paths.json << EOF
-{
-  "development": "/Users/$(whoami)/Documents/development",
-  "review_apps": "/Users/$(whoami)/Documents/development/for_human_review_apps",
-  "old_apps": "/Users/$(whoami)/Documents/development/old_apps",
-  "skills": "/Users/$(whoami)/Desktop/openclaw/skills",
-  "app_descriptions": "/Users/$(whoami)/Documents/development/for_human_review_apps/APP_DESCRIPTIONS.md"
-}
-EOF
-
-# Редактируем USER.md под себя
+# Отредактируй USER.md под себя
 nano USER.md
 ```
 
@@ -167,16 +151,14 @@ node openclaw.mjs gateway start
 
 ## Конфигурация
 
-### Локальные файлы (не в репо)
+### Локальные файлы (gitignored, создаются на каждом маке)
 
 | Файл | Назначение | Создание |
 |------|-----------|----------|
-| `USER.md` | Данные владельца | `cp USER.md.example USER.md` |
-| `TOOLS.md` | Заметки по инструментам | `cp TOOLS.md.example TOOLS.md` |
-| `config/paths.json` | Пути к директориям | setup.sh создаёт автоматически |
-| `config/mcporter.json` | MCP-серверы | Создать при необходимости |
-| `memory/` | Дневные логи | Создаётся агентом |
-| `MEMORY.md` | Долгосрочная память | Создаётся агентом |
+| `config/paths.json` | Пути к директориям | `setup.sh` создаёт |
+| `config/mcporter.json` | MCP-серверы | Вручную при необходимости |
+| `memory/` | Дневные логи | Агент создаёт автоматически |
+| `MEMORY.md` | Долгосрочная память | Агент создаёт автоматически |
 
 ### Токены (НЕ хранятся в репо)
 

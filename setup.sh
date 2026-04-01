@@ -109,7 +109,7 @@ if [ -f "$PATHS_FILE" ]; then
   "development": "/Users/$USERNAME/Documents/development",
   "review_apps": "/Users/$USERNAME/Documents/development/for_human_review_apps",
   "old_apps": "/Users/$USERNAME/Documents/development/old_apps",
-  "skills": "/Users/$USERNAME/Desktop/openclaw/skills",
+  "skills": "/Users/$USERNAME/.openclaw/workspace/skills",
   "app_descriptions": "/Users/$USERNAME/Documents/development/for_human_review_apps/APP_DESCRIPTIONS.md"
 }
 EOF
