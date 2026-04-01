@@ -20,6 +20,9 @@ openclaw-zm/              ← этот репо (workspace агента)
 ├── AGENTS.md             ← инструкции агенту (как себя вести)
 ├── SOUL.md               ← личность и тон
 ├── IDENTITY.md           ← имя, эмодзи
+├── USER.md               ← данные владельца (редактировать под себя)
+├── TOOLS.md              ← заметки по инструментам
+├── HEARTBEAT.md          ← периодические задачи
 ├── skills/               ← навыки агента
 │   ├── ios-builder/      ← генерация + сборка приложений
 │   ├── ios-tester/       ← тестирование в симуляторе
@@ -31,9 +34,8 @@ openclaw-zm/              ← этот репо (workspace агента)
 │   ├── apple-hig/        ← гайдлайны Apple
 │   └── ...               ← остальные
 │
-│
 │   Создаются локально (gitignored):
-├── config/               ← paths.json, mcporter.json
+├── config/paths.json     ← пути к директориям (setup.sh генерирует)
 ├── memory/               ← дневные логи агента
 └── MEMORY.md             ← долгосрочная память
 ```
@@ -42,18 +44,18 @@ openclaw-zm/              ← этот репо (workspace агента)
 
 ```
 Тема + Бренд → Генерация идей → Утверждение → Сборка → Тест → Доставка
-     ↓              ↓                ↓            ↓        ↓         ↓
-  Viktor        idea-gen         Telegram    ios-builder  Simulator  for_human_review_apps/
+                     ↓                ↓            ↓        ↓         ↓
+                 idea-gen         Telegram    ios-builder  Simulator  for_human_review_apps/
                                                   ↓
                                             Sub-agents (параллельно)
 ```
 
 ### Подробнее
 
-1. **Viktor даёт тему** — бренд, палитра, категория, количество приложений
-2. **Boba генерирует идеи** — проверяет уникальность, предлагает список
-3. **Viktor утверждает** — может поправить названия/фичи
-4. **Boba запускает sub-agents** — каждый строит одно приложение параллельно
+1. **Даёшь тему** — бренд, палитра, категория, количество приложений
+2. **Агент генерирует идеи** — проверяет уникальность, предлагает список
+3. **Утверждаешь** — можешь поправить названия/фичи
+4. **Агент запускает sub-agents** — каждый строит одно приложение параллельно
 5. **Каждый sub-agent:**
    - Создаёт Xcode-проект
    - Пишет весь Swift-код (custom UI, без SF Symbols)
@@ -61,7 +63,7 @@ openclaw-zm/              ← этот репо (workspace агента)
    - Билдит и проверяет в симуляторе
    - Делает скриншоты
 6. **Готовые приложения** → `for_human_review_apps/`
-7. **После ревью** → push на GitHub (PrivetAI org) → Codemagic → App Store
+7. **После ревью** → push на GitHub → Codemagic → App Store
 
 ### WebView паттерн
 
@@ -87,84 +89,61 @@ openclaw-zm/              ← этот репо (workspace агента)
 curl -sL https://raw.githubusercontent.com/PrivetAI/openclaw-zm/main/setup.sh | bash
 ```
 
-Или вручную:
+Скрипт автоматически:
+- Установит Homebrew, Node.js 22, GitHub CLI, XcodeBuildMCP
+- Клонирует OpenClaw в `~/Desktop/openclaw/`
+- Клонирует workspace в `~/.openclaw/workspace/`
+- Создаст `~/Documents/development/` и поддиректории
+- Сгенерирует `config/paths.json` под текущего юзера
 
-### 1. Зависимости
+### После скрипта (вручную)
 
 ```bash
-# Homebrew
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-
-# Node.js 22+
-brew install node@22
-
-# GitHub CLI
-brew install gh
-gh auth login
-
-# Xcode (из App Store, потом:)
+# 1. Xcode — установить из App Store, потом:
 xcode-select --install
 sudo xcodebuild -license accept
 
-# XcodeBuildMCP (опционально, для UI-тестирования)
-brew install nicklama/tap/xcodebuildmcp
-```
+# 2. OpenClaw конфиг — запустить визард:
+cd ~/Desktop/openclaw && node openclaw.mjs onboard
+# Попросит: Anthropic API key, Telegram bot token, allowed user IDs
 
-### 2. OpenClaw
+# 3. GitHub — авторизация:
+gh auth login
 
-```bash
-# Клонируем OpenClaw
-cd ~/Desktop
-git clone https://github.com/openclaw/openclaw.git
-cd openclaw
-npm install
+# 4. USER.md — отредактировать под себя:
+nano ~/.openclaw/workspace/USER.md
 
-# Запускаем визард — создаст ~/.openclaw/openclaw.json
-node openclaw.mjs onboard
-# Визард попросит:
-#   - Anthropic API key
-#   - Telegram bot token + allowed user IDs
-```
-
-### 3. Workspace (этот репо)
-
-```bash
-# Клонируем workspace
-cd ~/.openclaw
-git clone git@github.com:PrivetAI/openclaw-zm.git workspace
-cd workspace
-
-# setup.sh создаст config/paths.json и директории автоматически
-chmod +x setup.sh
-./setup.sh
-
-# Отредактируй USER.md под себя
-nano USER.md
-```
-
-### 4. Запуск
-
-```bash
-cd ~/Desktop/openclaw
-node openclaw.mjs gateway start
+# 5. Запуск:
+cd ~/Desktop/openclaw && node openclaw.mjs gateway start
 ```
 
 ## Конфигурация
 
-### Локальные файлы (gitignored, создаются на каждом маке)
+### Файлы в репо (портативные)
+
+| Файл | Назначение |
+|------|-----------|
+| `AGENTS.md` | Правила поведения агента |
+| `SOUL.md` | Личность и тон |
+| `IDENTITY.md` | Имя, эмодзи |
+| `USER.md` | Данные владельца (отредактировать) |
+| `TOOLS.md` | Заметки по инструментам |
+| `HEARTBEAT.md` | Периодические задачи |
+| `skills/` | Все навыки |
+
+### Создаются локально (gitignored)
 
 | Файл | Назначение | Создание |
 |------|-----------|----------|
-| `config/paths.json` | Пути к директориям | `setup.sh` создаёт |
-| `config/mcporter.json` | MCP-серверы | Вручную при необходимости |
-| `memory/` | Дневные логи | Агент создаёт автоматически |
-| `MEMORY.md` | Долгосрочная память | Агент создаёт автоматически |
+| `config/paths.json` | Пути к директориям | `setup.sh` |
+| `memory/` | Дневные логи | Агент автоматически |
+| `MEMORY.md` | Долгосрочная память | Агент автоматически |
 
 ### Токены (НЕ хранятся в репо)
 
-- `ANTHROPIC_API_KEY` — для Claude (основная модель)
-- Telegram Bot Token — в config.yaml OpenClaw
-- GitHub SSH key — для push в PrivetAI
+- `ANTHROPIC_API_KEY` — в `~/.openclaw/openclaw.json`
+- Telegram Bot Token — в `~/.openclaw/openclaw.json`
+- GitHub SSH key — `~/.ssh/id_ed25519`
 
 ## Команды агенту
 

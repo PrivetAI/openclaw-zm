@@ -100,11 +100,12 @@ mkdir -p "$DEV_DIR/for_human_review_apps"
 mkdir -p "$DEV_DIR/old_apps"
 info "Development directories ready"
 
-# --- 9. Update paths.json for this Mac ---
+# --- 9. Create config/paths.json for this Mac ---
 USERNAME=$(whoami)
-PATHS_FILE="$WORKSPACE_DIR/config/paths.json"
-if [ -f "$PATHS_FILE" ]; then
-  cat > "$PATHS_FILE" << EOF
+PATHS_DIR="$WORKSPACE_DIR/config"
+PATHS_FILE="$PATHS_DIR/paths.json"
+mkdir -p "$PATHS_DIR"
+cat > "$PATHS_FILE" << EOF
 {
   "development": "/Users/$USERNAME/Documents/development",
   "review_apps": "/Users/$USERNAME/Documents/development/for_human_review_apps",
@@ -113,33 +114,40 @@ if [ -f "$PATHS_FILE" ]; then
   "app_descriptions": "/Users/$USERNAME/Documents/development/for_human_review_apps/APP_DESCRIPTIONS.md"
 }
 EOF
-  info "paths.json updated for user: $USERNAME"
-fi
+info "config/paths.json created for user: $USERNAME"
 
-# --- 10. Config reminder ---
+# --- 10. Config check ---
 echo ""
 echo "===================="
 echo ""
 
-CONFIG_FILE="$OPENCLAW_DIR/config.yaml"
-if [ ! -f "$CONFIG_FILE" ]; then
+CONFIG_FILE="$HOME/.openclaw/openclaw.json"
+if [ -f "$CONFIG_FILE" ]; then
+  info "OpenClaw config exists at $CONFIG_FILE"
+else
   warn "OpenClaw config not found!"
   echo ""
-  echo "  Create $CONFIG_FILE with:"
+  echo "  Run the setup wizard:"
+  echo "    cd $OPENCLAW_DIR && node openclaw.mjs onboard"
+  echo ""
+  echo "  You'll need:"
   echo "    - Anthropic API key"
   echo "    - Telegram bot token"
-  echo "    - Allowed user IDs"
-  echo ""
-  echo "  Example: cp $OPENCLAW_DIR/config.example.yaml $CONFIG_FILE"
-else
-  info "OpenClaw config exists"
+  echo "    - Allowed Telegram user IDs"
 fi
 
 echo ""
 info "Setup complete! Next steps:"
 echo ""
-echo "  1. Configure tokens in $OPENCLAW_DIR/config.yaml"
-echo "  2. Run: gh auth login (if not done)"
-echo "  3. Start: cd $OPENCLAW_DIR && node openclaw.mjs gateway start"
+if [ ! -f "$CONFIG_FILE" ]; then
+  echo "  1. Run: cd $OPENCLAW_DIR && node openclaw.mjs onboard"
+  echo "  2. Run: gh auth login (if not done)"
+  echo "  3. Edit: $WORKSPACE_DIR/USER.md (your info)"
+  echo "  4. Start: cd $OPENCLAW_DIR && node openclaw.mjs gateway start"
+else
+  echo "  1. Run: gh auth login (if not done)"
+  echo "  2. Edit: $WORKSPACE_DIR/USER.md (your info)"
+  echo "  3. Start: cd $OPENCLAW_DIR && node openclaw.mjs gateway start"
+fi
 echo ""
 echo "🧋 Ready to build apps!"
