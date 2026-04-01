@@ -132,8 +132,20 @@ cd ~/.openclaw
 git clone git@github.com:PrivetAI/openclaw-zm.git workspace
 cd workspace
 
-# Create local files from templates
-cp USER.md.example USER.md
+# Create USER.md — agent will ask for your info on first run
+# Or create it manually:
+cat > USER.md << 'EOF'
+# USER.md
+
+- **Name:** Your Name
+- **What to call them:** Boss
+- **Timezone:** Your/Timezone (GMT+X)
+- **Telegram ID:** 000000000
+
+## Context
+
+- Goals and preferences here
+EOF
 nano USER.md  # fill in your info
 
 # Create config directory (setup.sh does this automatically)

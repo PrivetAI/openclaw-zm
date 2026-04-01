@@ -100,7 +100,27 @@ mkdir -p "$DEV_DIR/for_human_review_apps"
 mkdir -p "$DEV_DIR/old_apps"
 info "Development directories ready"
 
-# --- 9. Create config/paths.json for this Mac ---
+# --- 9. Create USER.md if missing ---
+USER_FILE="$WORKSPACE_DIR/USER.md"
+if [ ! -f "$USER_FILE" ]; then
+  cat > "$USER_FILE" << 'EOF'
+# USER.md
+
+- **Name:** Change Me
+- **What to call them:** Boss
+- **Timezone:** Your/Timezone (GMT+X)
+- **Telegram ID:** 000000000
+
+## Context
+
+- Goals and preferences here
+EOF
+  warn "USER.md created — edit it: nano $USER_FILE"
+else
+  info "USER.md exists"
+fi
+
+# --- 10. Create config/paths.json ---
 USERNAME=$(whoami)
 PATHS_DIR="$WORKSPACE_DIR/config"
 PATHS_FILE="$PATHS_DIR/paths.json"
@@ -116,7 +136,7 @@ cat > "$PATHS_FILE" << EOF
 EOF
 info "config/paths.json created for user: $USERNAME"
 
-# --- 10. Config check ---
+# --- 11. Config check ---
 echo ""
 echo "===================="
 echo ""
