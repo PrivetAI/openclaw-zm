@@ -110,6 +110,7 @@ Replace:
 - Old URL (e.g. `https://example.com`) → New URL (e.g. `https://bnationrest.org/click.php`)
 - Old check domain → New check domain in ALL `.contains("...")` calls
 - Update in App.swift (launch check) AND SettingsView/ProfileView (direct link)
+- **Privacy Policy button** in SettingsView MUST link to the **WebView URL** (not the check domain). Always set it to the new WebView URL.
 
 **CRITICAL:** Check domain appears in TWO places minimum:
 1. `RedirectTracker.checkDomain` or `init(checkDomain:)` — mid-chain interception

@@ -1,6 +1,6 @@
 ---
 name: idea-gen
-description: Generate unique iOS app ideas for App Store submission. Use when brainstorming new app concepts, given a theme/category and brand style. Checks existing apps to avoid duplicates.
+description: Generate unique iOS app ideas for App Store submission. Use when brainstorming new app concepts, given a theme/category. Checks existing apps to avoid duplicates.
 ---
 
 # App Idea Generation
@@ -11,8 +11,9 @@ Generate truly unique iOS app ideas that won't get rejected for 4.3 (design spam
 
 User provides:
 - **Category** — App Store category (Education, Health & Fitness, Reference, etc.)
-- **Brand style** — colors, typography, visual language, icon style
 - **Quantity** — how many ideas to generate (default: 5-10)
+
+Brand/style is provided separately at build time, not during idea generation.
 
 ## Before Generating
 

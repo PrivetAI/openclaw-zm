@@ -9,6 +9,15 @@
 build/
 DerivedData/
 
+# Local state (generated per-mac)
+config/
+memory/
+MEMORY.md
+HEARTBEAT.md
+APP_TRACKER.md
+app-review-responses/
+screenshots/
+
 # Don't track stale files
 iOS_APPS_TESTING_SUMMARY.md
 iOS_Apps_Testing_Report.md
@@ -16,3 +25,7 @@ lives_system_implementation.md
 Screenshot_Paths.md
 Package.swift
 Sources/
+
+# Local dirs
+.local/
+.openclaw/

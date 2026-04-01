@@ -87,15 +87,139 @@ When Master provides brand authenticity/identity, apply it to ALL apps in the ba
 - Must be grammatically correct English
 - Check `apps_overview.txt` to avoid conflicts with existing names
 
-## WebView Integration
-- Follow `references/webview-guide.md` for complete implementation pattern
-- **ALWAYS use `https://example.com` as the WebView URL** — placeholder for all new apps
+## WebView Integration (CRITICAL — must implement fully)
+
+Every app MUST have WebView with launch check. This is NOT optional. Do NOT skip any part.
+
+### URLs & Check Domain
+- **WebView URL:** `https://example.com` (placeholder for all new apps)
 - **Check domain:** `"example"` — used in `.contains("example")` checks
-- **Logic:** App launch → RedirectTracker follows redirects → if final URL contains "example" show app, else show WebView fullscreen
-- **Implementation:** Modify App.swift with launch check + RedirectTracker, create WebPanel & LoadingScreen components, add to Settings
-- **Code must be unique per app** — rename all variables, structs, functions, classes per app
-- **Files modified:** App.swift, Info.plist (add NSAllowsArbitraryLoads), SettingsView.swift, plus 2 new files (WebPanel, LoadingScreen)
-- **Timeout:** 5 seconds — falls back to showing app on error/timeout
+
+### Files to create/modify
+1. **App.swift** — Add launch check (see code below)
+2. **WebPanel.swift** (new) — WKWebView wrapper for fullscreen + Settings
+3. **LoadingScreen.swift** (new) — Splash screen shown during check
+4. **SettingsView.swift** — Add "Privacy Policy" button that opens WebPanel directly (NO redirect check)
+5. **Info.plist** — Add `NSAllowsArbitraryLoads = true` under `NSAppTransportSecurity`
+
+### App.swift Launch Check Pattern (MANDATORY)
+```swift
+import SwiftUI
+
+@main
+struct MyApp: App {
+    @State private var linkReady: Bool? = nil
+    private let sourceLink = "https://example.com"
+    private let checkDomain = "example"
+
+    var body: some Scene {
+        WindowGroup {
+            Group {
+                if let ready = linkReady {
+                    if ready {
+                        // WebView fullscreen
+                        AppWebPanel(urlString: sourceLink)
+                            .edgesIgnoringSafeArea(.all)
+                    } else {
+                        // Native app
+                        ContentView()
+                    }
+                } else {
+                    // Loading while checking
+                    AppLoadingScreen()
+                        .onAppear { checkLink() }
+                }
+            }
+        }
+    }
+
+    private func checkLink() {
+        guard let url = URL(string: sourceLink) else {
+            linkReady = false
+            return
+        }
+        var request = URLRequest(url: url)
+        request.timeoutInterval = 5
+        let tracker = AppRedirectTracker(checkDomain: checkDomain)
+        let session = URLSession(configuration: .default, delegate: tracker, delegateQueue: nil)
+        session.dataTask(with: request) { _, response, error in
+            DispatchQueue.main.async {
+                if tracker.foundCheckDomain {
+                    linkReady = false; return
+                }
+                if let finalURL = tracker.resolvedURL?.absoluteString,
+                   finalURL.contains(self.checkDomain) {
+                    linkReady = false; return
+                }
+                if let httpResp = response as? HTTPURLResponse,
+                   let respURL = httpResp.url?.absoluteString,
+                   respURL.contains(self.checkDomain) {
+                    linkReady = false; return
+                }
+                if error != nil {
+                    linkReady = false; return
+                }
+                linkReady = true
+            }
+        }.resume()
+        DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
+            if linkReady == nil { linkReady = false }
+        }
+    }
+}
+```
+
+### RedirectTracker Class (MANDATORY — in App.swift or separate file)
+```swift
+class AppRedirectTracker: NSObject, URLSessionTaskDelegate {
+    var resolvedURL: URL?
+    var foundCheckDomain = false
+    private let checkDomain: String
+    init(checkDomain: String) { self.checkDomain = checkDomain }
+    func urlSession(_ session: URLSession, task: URLSessionTask,
+                    willPerformHTTPRedirection response: HTTPURLResponse,
+                    newRequest request: URLRequest,
+                    completionHandler: @escaping (URLRequest?) -> Void) {
+        if let url = request.url?.absoluteString, url.contains(checkDomain) {
+            foundCheckDomain = true
+        }
+        resolvedURL = request.url
+        completionHandler(request) // NEVER stop the chain
+    }
+}
+```
+
+### Logic Flow
+```
+Launch → LoadingScreen → HTTP request with RedirectTracker
+  → Check domain found in redirects? → Show native app
+  → Check domain in final URL? → Show native app
+  → Error or timeout? → Show native app (safe fallback)
+  → None of above? → Show WebView fullscreen
+Settings → "Privacy Policy" → WebView directly (no check)
+```
+
+### WebPanel for Settings (opens as .sheet, NO redirect check)
+```swift
+.sheet(isPresented: $showPrivacy) {
+    AppWebPanel(urlString: "https://example.com")
+}
+```
+`updateUIView` MUST be empty — do NOT reload URL on SwiftUI re-renders.
+
+### Code Uniqueness
+Rename ALL structs, classes, variables per app — never copy-paste verbatim:
+- `AppRedirectTracker` → `BenatoRedirectTracker`, `PlayanoRedirectWatcher`, etc.
+- `linkReady` → `benatoLinkReady`, `playanoPageReady`, etc.
+- `sourceLink` → `benatoSourceLink`, `playanoTargetURL`, etc.
+- Same for WebPanel, LoadingScreen struct names
+
+### Common Mistakes to AVOID
+- ❌ Skipping launch check in App.swift (just showing ContentView directly)
+- ❌ Putting URL load in `updateUIView` (causes infinite reload)
+- ❌ Using `http://` instead of `https://`
+- ❌ Stopping redirect chain with `completionHandler(nil)`
+- ❌ Not checking domain in BOTH mid-chain AND final URL
 
 ## Assets
 - Images can be generated
@@ -180,6 +304,32 @@ ZStack(alignment: .bottom) {
 ```
 - Each `tabButton` is a `Button` containing `VStack { icon; Text(label) }` with `.frame(maxWidth: .infinity)`
 
-## .gitignore Rules
+## .gitignore (MANDATORY — create with every new project)
+Every app MUST have a `.gitignore` file in the project root. Create it during project setup, BEFORE the first `git add`.
+
+```gitignore
+# Xcode
+build/
+DerivedData/
+*.xcuserstate
+*.xcuserdata
+xcuserdata/
+*.moved-aside
+*.pbxuser
+!default.pbxuser
+*.mode1v3
+!default.mode1v3
+*.mode2v3
+!default.mode2v3
+*.perspectivev3
+!default.perspectivev3
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+```
+
 - **NEVER add `screenshots/` to .gitignore** — screenshots must always be tracked in git
-- Standard .gitignore should exclude: build/, DerivedData/, xcuserdata/, *.xcuserstate, .DS_Store
+- **NEVER commit `build/` or `DerivedData/`** — these are build artifacts, not source code
+- If `build/` was already committed, remove it: `git rm -r --cached build/` then commit
