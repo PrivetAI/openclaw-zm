@@ -2,7 +2,7 @@
 # setup.sh — Bootstrap openclaw-zm on a fresh Mac
 # Usage: curl -sL https://raw.githubusercontent.com/PrivetAI/openclaw-zm/main/setup.sh | bash
 
-set -e
+# No set -e: brew/install failures shouldn't abort the whole script
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -79,7 +79,7 @@ if [ -d "$OPENCLAW_DIR/.git" ]; then
 else
   warn "Cloning OpenClaw..."
   git clone https://github.com/openclaw/openclaw.git "$OPENCLAW_DIR"
-  cd "$OPENCLAW_DIR" && npm install
+  cd "$OPENCLAW_DIR" && command -v npm &>/dev/null && npm install || warn "npm not found — run 'npm install' in $OPENCLAW_DIR after setup"
   info "OpenClaw installed"
 fi
 
