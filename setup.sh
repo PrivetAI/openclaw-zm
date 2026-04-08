@@ -34,7 +34,7 @@ else
 fi
 
 # --- 2. Check workspace ---
-if [ -d "$WORKSPACE_DIR/skills" ]; then
+if [ -d "$WORKSPACE_DIR/.git" ] || [ -f "$WORKSPACE_DIR/AGENTS.md" ] || [ -f "$WORKSPACE_DIR/SOUL.md" ]; then
   info "Workspace found at $WORKSPACE_DIR"
 else
   fail "Workspace not found! Clone it first:"
@@ -112,6 +112,54 @@ cat > "$PATHS_FILE" << EOF
 }
 EOF
 info "config/paths.json generated"
+
+# --- 9. OpenClaw bootstrap-extra-files workaround ---
+CONFIG_FILE="$HOME/.openclaw/openclaw.json"
+if command -v python3 &>/dev/null; then
+  TMP_CONFIG=$(mktemp)
+  if python3 - "$CONFIG_FILE" "$TMP_CONFIG" << 'PY'
+import json, sys
+from pathlib import Path
+config_path = Path(sys.argv[1]).expanduser()
+out_path = Path(sys.argv[2])
+obj = json.loads(config_path.read_text())
+entries = obj.setdefault("hooks", {}).setdefault("internal", {}).setdefault("entries", {})
+bootstrap = entries.setdefault("bootstrap-extra-files", {})
+bootstrap["enabled"] = True
+existing = bootstrap.get("paths") or bootstrap.get("patterns") or bootstrap.get("files") or []
+want = [
+    "workspace/AGENTS.md",
+    "workspace/SOUL.md",
+    "workspace/IDENTITY.md",
+    "workspace/USER.md",
+    "workspace/TOOLS.md",
+    "workspace/HEARTBEAT.md",
+    "workspace/BOOTSTRAP.md",
+    "workspace/MEMORY.md"
+]
+seen = set()
+merged = []
+for item in list(existing) + want:
+    if isinstance(item, str) and item not in seen:
+        seen.add(item)
+        merged.append(item)
+bootstrap["paths"] = merged
+for alias in ("patterns", "files"):
+    if alias in bootstrap:
+        del bootstrap[alias]
+out_path.write_text(json.dumps(obj, indent=2) + "\n")
+PY
+  then
+    mv "$TMP_CONFIG" "$CONFIG_FILE"
+    info "Patched openclaw.json with bootstrap-extra-files paths"
+    warn "Restart OpenClaw gateway so new sessions pick up workspace persona/context"
+  else
+    rm -f "$TMP_CONFIG"
+    warn "Could not patch openclaw.json automatically"
+  fi
+else
+  warn "python3 not found, skipped openclaw.json patch"
+fi
 
 # --- Done ---
 echo ""
