@@ -33,7 +33,14 @@ All paths resolved from `config/paths.json` in workspace root.
 ### 1. Find the App
 
 ```bash
-cd "/Users/PrinceTyga/Documents/development/for_human_review_apps"
+REVIEW_APPS="$(python3 - <<'PY'
+import json, os
+from pathlib import Path
+cfg = Path(os.path.expanduser('~/.openclaw/workspace/config/paths.json'))
+print(json.loads(cfg.read_text())['review_apps'])
+PY
+)"
+cd "$REVIEW_APPS"
 ls -d "*Old*" 2>/dev/null  # find exact folder name
 ```
 
@@ -49,7 +56,14 @@ Identify all old variable prefixes (e.g. `cobra`, `cobraSourceLink`, `CobraWebPa
 ### 3. Rename Folder Structure
 
 ```bash
-cd "/Users/PrinceTyga/Documents/development/for_human_review_apps"
+REVIEW_APPS="$(python3 - <<'PY'
+import json, os
+from pathlib import Path
+cfg = Path(os.path.expanduser('~/.openclaw/workspace/config/paths.json'))
+print(json.loads(cfg.read_text())['review_apps'])
+PY
+)"
+cd "$REVIEW_APPS"
 mv "Old App Name" "New App Name"
 cd "New App Name"
 mv "Old App Name" "New App Name"

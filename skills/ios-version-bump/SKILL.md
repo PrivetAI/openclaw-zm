@@ -9,7 +9,8 @@ Bump build number (CFBundleVersion) and/or marketing version (CFBundleShortVersi
 
 ## Paths
 
-- Apps: `/Users/PrinceTyga/Documents/development/for_human_review_apps/`
+Resolve paths from `config/paths.json` in the workspace root.
+- Apps live in the `review_apps` key
 - GitHub org: `PrivetAI`
 
 ## Inputs
@@ -48,7 +49,14 @@ iOS apps store version info in two ways. **Detect which pattern before editing.*
 ## Detection
 
 ```bash
-cd "/Users/PrinceTyga/Documents/development/for_human_review_apps/App Name"
+APP_ROOT="$(python3 - <<'PY'
+import json, os
+from pathlib import Path
+cfg = Path(os.path.expanduser('~/.openclaw/workspace/config/paths.json'))
+print(json.loads(cfg.read_text())['review_apps'])
+PY
+)/App Name"
+cd "$APP_ROOT"
 PLIST=$(find . -name "Info.plist" -not -path "./.git/*" -not -path "*/build/*" | head -1)
 grep -A1 "CFBundleVersion" "$PLIST"
 grep -A1 "CFBundleShortVersionString" "$PLIST"
