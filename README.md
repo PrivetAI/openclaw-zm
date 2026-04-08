@@ -15,21 +15,37 @@ AI-агент по текстовому описанию:
 
 **Сначала поставь OpenClaw:** https://github.com/openclaw/openclaw
 
-Потом:
+Дальше есть два нормальных сценария.
+
+### Вариант A, рекомендованный: клонировать репо прямо в workspace
 
 ```bash
-# 1. Клонируй workspace
 git clone git@github.com:PrivetAI/openclaw-zm.git ~/.openclaw/workspace
-
-# 2. Запусти setup — поставит инструменты, создаст директории
 bash ~/.openclaw/workspace/setup.sh
-
-# 3. Заполни свои данные
 nano ~/.openclaw/workspace/USER.md
-
-# 4. Запуск
-openclaw gateway start
+openclaw gateway restart
 ```
+
+После этого создай новую сессию с агентом.
+
+### Вариант B: ручной перенос файлов в `~/.openclaw/workspace`
+
+Если ты уже распаковал или склонировал репо в другую папку, можно просто перенести файлы вручную в `~/.openclaw/workspace`, а затем запустить setup из исходной папки репо или из самого workspace.
+
+Пример:
+
+```bash
+# файлы репо уже скопированы в ~/.openclaw/workspace
+bash ~/.openclaw/workspace/setup.sh
+nano ~/.openclaw/workspace/USER.md
+openclaw gateway restart
+```
+
+Важно:
+- setup теперь считает workspace валидным, даже если там нет папки `skills/.git` в старом виде
+- setup автоматически патчит `~/.openclaw/openclaw.json`
+- он добавляет `hooks.internal.entries.bootstrap-extra-files.paths`, чтобы OpenClaw явно подхватывал persona/context файлы
+- после setup нужен **restart gateway** и **новая сессия**, иначе старый контекст может остаться в памяти текущего запуска
 
 setup.sh проверит/установит:
 - Xcode (проверка)
@@ -37,6 +53,7 @@ setup.sh проверит/установит:
 - XcodeBuildMCP (тестирование в симуляторе)
 - Рабочие директории
 - `USER.md` + `config/paths.json`
+- `bootstrap-extra-files` в `~/.openclaw/openclaw.json`
 
 ## Архитектура
 

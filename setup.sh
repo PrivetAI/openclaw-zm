@@ -36,9 +36,11 @@ fi
 # --- 2. Check workspace ---
 if [ -d "$WORKSPACE_DIR/.git" ] || [ -f "$WORKSPACE_DIR/AGENTS.md" ] || [ -f "$WORKSPACE_DIR/SOUL.md" ]; then
   info "Workspace found at $WORKSPACE_DIR"
+  info "Manual file copy is supported"
 else
-  fail "Workspace not found! Clone it first:"
-  echo "  git clone git@github.com:PrivetAI/openclaw-zm.git $WORKSPACE_DIR"
+  fail "Workspace not found! Clone it first or copy repo files into $WORKSPACE_DIR"
+  echo "  Option A: git clone git@github.com:PrivetAI/openclaw-zm.git $WORKSPACE_DIR"
+  echo "  Option B: copy the repo contents into $WORKSPACE_DIR and rerun setup.sh"
   exit 1
 fi
 
@@ -169,7 +171,7 @@ info "Setup complete!"
 echo ""
 echo "  Next steps:"
 echo "  1. Edit USER.md: nano $USER_FILE"
-echo "  2. Start OpenClaw: openclaw gateway start"
-echo "  3. Message the bot in Telegram"
+echo "  2. Restart OpenClaw: openclaw gateway restart"
+echo "  3. Start a new chat/session with the bot"
 echo ""
 echo "🧋 Ready to build apps!"
