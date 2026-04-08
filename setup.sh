@@ -16,6 +16,30 @@ warn()  { echo -e "${YELLOW}[!]${NC} $1"; }
 fail()  { echo -e "${RED}[✗]${NC} $1"; }
 
 WORKSPACE_DIR="$HOME/.openclaw/workspace"
+REPO_DIR="$(cd "$(dirname "$0")" && pwd)"
+OPENCLAW_DIR="$HOME/.openclaw"
+
+sync_workspace_files() {
+  mkdir -p "$WORKSPACE_DIR"
+
+  for file in AGENTS.md SOUL.md IDENTITY.md HEARTBEAT.md setup.sh README.md; do
+    if [ -f "$REPO_DIR/$file" ]; then
+      cp "$REPO_DIR/$file" "$WORKSPACE_DIR/$file"
+    fi
+  done
+
+  if [ -d "$REPO_DIR/skills" ]; then
+    mkdir -p "$WORKSPACE_DIR/skills"
+    rsync -a --delete "$REPO_DIR/skills/" "$WORKSPACE_DIR/skills/"
+  fi
+
+  if [ -f "$REPO_DIR/TOOLS.md" ]; then
+    cp "$REPO_DIR/TOOLS.md" "$WORKSPACE_DIR/TOOLS.md"
+  fi
+
+  info "Synced agent files into $WORKSPACE_DIR"
+  warn "Preserved USER.md, MEMORY.md, and memory/"
+}
 
 echo ""
 echo "🧋 openclaw-zm — iOS dev setup"
@@ -23,7 +47,7 @@ echo "=============================="
 echo ""
 
 # --- 1. Check OpenClaw is installed ---
-if [ -f "$HOME/.openclaw/openclaw.json" ]; then
+if [ -f "$OPENCLAW_DIR/openclaw.json" ]; then
   info "OpenClaw config found"
 else
   fail "OpenClaw not configured!"
@@ -33,16 +57,10 @@ else
   exit 1
 fi
 
-# --- 2. Check workspace ---
-if [ -d "$WORKSPACE_DIR/.git" ] || [ -f "$WORKSPACE_DIR/AGENTS.md" ] || [ -f "$WORKSPACE_DIR/SOUL.md" ]; then
-  info "Workspace found at $WORKSPACE_DIR"
-  info "Manual file copy is supported"
-else
-  fail "Workspace not found! Clone it first or copy repo files into $WORKSPACE_DIR"
-  echo "  Option A: git clone git@github.com:PrivetAI/openclaw-zm.git $WORKSPACE_DIR"
-  echo "  Option B: copy the repo contents into $WORKSPACE_DIR and rerun setup.sh"
-  exit 1
-fi
+# --- 2. Ensure workspace and sync repo files into it ---
+mkdir -p "$WORKSPACE_DIR"
+sync_workspace_files
+info "Workspace ready at $WORKSPACE_DIR"
 
 # --- 3. Xcode ---
 if command -v xcodebuild &>/dev/null; then
@@ -116,7 +134,7 @@ EOF
 info "config/paths.json generated"
 
 # --- 9. OpenClaw bootstrap-extra-files workaround ---
-CONFIG_FILE="$HOME/.openclaw/openclaw.json"
+CONFIG_FILE="$OPENCLAW_DIR/openclaw.json"
 if command -v python3 &>/dev/null; then
   TMP_CONFIG=$(mktemp)
   if python3 - "$CONFIG_FILE" "$TMP_CONFIG" << 'PY'
@@ -170,8 +188,8 @@ echo ""
 info "Setup complete!"
 echo ""
 echo "  Next steps:"
-echo "  1. Edit USER.md: nano $USER_FILE"
-echo "  2. Restart OpenClaw: openclaw gateway restart"
-echo "  3. Start a new chat/session with the bot"
+echo "  1. Run openclaw gateway restart"
+echo "  2. Start a new chat/session with the bot"
+echo "  3. If needed, edit USER.md: nano $USER_FILE"
 echo ""
 echo "🧋 Ready to build apps!"

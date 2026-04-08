@@ -13,47 +13,66 @@ AI-агент по текстовому описанию:
 
 ## Установка
 
-**Сначала поставь OpenClaw:** https://github.com/openclaw/openclaw
+Флоу такой:
+1. ставишь базовый OpenClaw
+2. проходишь `openclaw onboard`
+3. запускаешь `openclaw-zm/setup.sh`
+4. setup накатывает наш workspace/persona/skills поверх OpenClaw
+5. рестартуешь gateway и работаешь уже в нашем флоу
 
-Дальше есть два нормальных сценария.
+### 1. Поставить OpenClaw
 
-### Вариант A, рекомендованный: клонировать репо прямо в workspace
+Следуй официальному репо OpenClaw:
+https://github.com/openclaw/openclaw
+
+После установки обязательно выполни:
 
 ```bash
-git clone git@github.com:PrivetAI/openclaw-zm.git ~/.openclaw/workspace
-bash ~/.openclaw/workspace/setup.sh
-nano ~/.openclaw/workspace/USER.md
+openclaw onboard
+```
+
+Это создаст и настроит базовый `~/.openclaw`.
+
+### 2. Накатить openclaw-zm
+
+Можно держать это репо где угодно, setup сам поставит нужные файлы в правильные папки.
+
+```bash
+git clone git@github.com:PrivetAI/openclaw-zm.git ~/Desktop/apps/openclaw-zm
+bash ~/Desktop/apps/openclaw-zm/setup.sh
 openclaw gateway restart
 ```
 
 После этого создай новую сессию с агентом.
 
-### Вариант B: ручной перенос файлов в `~/.openclaw/workspace`
+### Что делает setup.sh
 
-Если ты уже распаковал или склонировал репо в другую папку, можно просто перенести файлы вручную в `~/.openclaw/workspace`, а затем запустить setup из исходной папки репо или из самого workspace.
+`setup.sh` приводит OpenClaw к нашему рабочему состоянию:
+- копирует в `~/.openclaw/workspace/`:
+  - `AGENTS.md`
+  - `SOUL.md`
+  - `IDENTITY.md`
+  - `HEARTBEAT.md`
+  - `TOOLS.md`
+  - `setup.sh`
+  - `README.md`
+- синхронизирует `skills/` в `~/.openclaw/workspace/skills/`
+- перезаписывает agent/persona файлы из репо, чтобы бот точно был в нужной конфигурации
+- перезаписывает bot/persona/tooling файлы из репо, включая `TOOLS.md`
+- **не трогает память пользователя**:
+  - `MEMORY.md`
+  - `memory/`
+- создаёт `USER.md`, если его ещё нет
+- генерирует `config/paths.json`
+- патчит `~/.openclaw/openclaw.json`
+- добавляет `hooks.internal.entries.bootstrap-extra-files.paths`, чтобы OpenClaw явно подхватывал persona/context файлы
 
-Пример:
+### Важно
 
-```bash
-# файлы репо уже скопированы в ~/.openclaw/workspace
-bash ~/.openclaw/workspace/setup.sh
-nano ~/.openclaw/workspace/USER.md
-openclaw gateway restart
-```
-
-Важно:
-- setup теперь считает workspace валидным, даже если там нет папки `skills/.git` в старом виде
-- setup автоматически патчит `~/.openclaw/openclaw.json`
-- он добавляет `hooks.internal.entries.bootstrap-extra-files.paths`, чтобы OpenClaw явно подхватывал persona/context файлы
-- после setup нужен **restart gateway** и **новая сессия**, иначе старый контекст может остаться в памяти текущего запуска
-
-setup.sh проверит/установит:
-- Xcode (проверка)
-- GitHub CLI (`gh`)
-- XcodeBuildMCP (тестирование в симуляторе)
-- Рабочие директории
-- `USER.md` + `config/paths.json`
-- `bootstrap-extra-files` в `~/.openclaw/openclaw.json`
+- setup рассчитан на уже установленный OpenClaw после `openclaw onboard`
+- локальные persona/agent/tooling files в workspace будут заменены версией из этого репо
+- память и журнал агента сохраняются
+- после setup нужен **`openclaw gateway restart`** и **новая сессия**
 
 ## Архитектура
 
